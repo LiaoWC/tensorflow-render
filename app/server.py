@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import aiohttp
 import asyncio
 import uvicorn
@@ -8,20 +10,19 @@ from PIL import Image
 from tensorflow import keras
 from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input
 import numpy as np
-#from tensorflow.keras.utils.data_utils import get_file
+# from tensorflow.keras.utils.data_utils import get_file
 from io import BytesIO
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.staticfiles import StaticFiles
 
-
-#set url
+# set url
 # export_file_url = 'https://drive.google.com/uc?export=download&id=1ZZ_2JRe39KcgqGu75watpeLOtQGfeDPA'
 model_config_name = 'app/models/model.config'
 model_file_name = 'app/models/best_model.h5'
 
-classes = ['0', '1', '2', '3','4']
+classes = ['0', '1', '2', '3', '4']
 path = Path(__file__).parent
 img_size = 224
 app = Starlette()
@@ -41,8 +42,8 @@ async def download_file(url, dest):
 async def setup_learner():
     # await download_file(export_file_url, path / export_file_name)
     try:
-        #learn = load_learner(path, export_file_name)        
-        #learn = keras.models.load_model("app/"+export_file_name)
+        # learn = load_learner(path, export_file_name)
+        # learn = keras.models.load_model("app/"+export_file_name)
         with open(model_config_name, "r") as text_file:
             json_string = text_file.read()
         learn = keras.models.model_from_json(json_string)
@@ -73,19 +74,19 @@ async def homepage(request):
 async def analyze(request):
     img_data = await request.form()
     img_bytes = await (img_data['file'].read())
-#     img = open_image(BytesIO(img_bytes))   
-#     prediction = learn.predict(img)[0]
-#     image = tf.keras.preprocessing.image.load_img( path, target_size=(img_size, img_size))
-#     input_arr = keras.preprocessing.image.img_to_array(image)
-#     input_arr = np.array([input_arr])  # Convert single image to a batch.
-#     predictions = learn.predict(input_arr) 
+    #     img = open_image(BytesIO(img_bytes))
+    #     prediction = learn.predict(img)[0]
+    #     image = tf.keras.preprocessing.image.load_img( path, target_size=(img_size, img_size))
+    #     input_arr = keras.preprocessing.image.img_to_array(image)
+    #     input_arr = np.array([input_arr])  # Convert single image to a batch.
+    #     predictions = learn.predict(input_arr)
 
     img = Image.open(BytesIO(img_bytes))
     img = img.convert('RGB')
     img = img.resize((img_size, img_size), Image.NEAREST)
     img = np.array(img)
-    img = preprocess_input( np.array([img]) )
-    predictions = learn.predict(img)  
+    img = preprocess_input(np.array([img]))
+    predictions = learn.predict(img)
     prediction = predictions.argmax()
     return JSONResponse({'result': str(prediction)})
 
